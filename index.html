@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERMINAL-LITTLE-BOY</title>
+
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --green:#00ff41;
+    --bg:#000000;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:var(--bg);
+    color:var(--green);
+    font-family:'VT323', monospace;
+    overflow:hidden;
+}
+
+#screen{
+    height:100vh;
+    width:100vw;
+    padding:20px;
+    overflow-y:auto;
+    position:relative;
+}
+
+#screen::before{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:
+    repeating-linear-gradient(
+        transparent 0px,
+        transparent 2px,
+        rgba(0,255,65,.03) 3px,
+        rgba(0,255,65,.03) 4px
+    );
+    pointer-events:none;
+}
+
+#screen::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:
+    radial-gradient(
+        circle at center,
+        transparent 60%,
+        rgba(0,0,0,.45) 100%
+    );
+    pointer-events:none;
+}
+
+.line{
+    white-space:pre-wrap;
+    margin-bottom:4px;
+}
+
+#inputLine{
+    display:flex;
+    align-items:center;
+    margin-top:10px;
+}
+
+.prompt{
+    margin-right:10px;
+}
+
+#commandInput{
+    background:transparent;
+    border:none;
+    color:var(--green);
+    font-family:'VT323', monospace;
+    font-size:24px;
+    outline:none;
+    width:100%;
+}
+
+.cursor{
+    animation:blink .8s infinite;
+}
+
+@keyframes blink{
+    50%{
+        opacity:0;
+    }
+}
+
+.glitch{
+    animation:glitch .15s infinite;
+}
+
+@keyframes glitch{
+    0%{transform:translate(1px,0);}
+    50%{transform:translate(-1px,0);}
+    100%{transform:translate(1px,0);}
+}
+
+.boot{
+    color:#00ff41;
+}
+
+.red{
+    color:#ff4444;
+}
+</style>
+</head>
+<body>
+
+<div id="screen"></div>
+
+<script>
+
+const screen = document.getElementById("screen");
+
+const lore = {
+
+help: `
+AVAILABLE COMMANDS
+
+HELP
+DIR
+FILES
+EMPLOYEES
+PROJECTS
+STATUS
+SEARCH
+OPEN
+WHOAREYOU
+CLEAR
+`,
+
+dir: `
+ROOT DIRECTORY
+
+FILES/
+EMPLOYEES/
+PROJECTS/
+ARCHIVES/
+`,
+
+files: `
+FILES FOUND
+
+FILE_001
+FILE_002
+FILE_003
+FILE_004
+`,
+
+employees: `
+EMPLOYEE DATABASE
+
+001 - RICHARD HART
+002 - ELLEN PRICE
+003 - MICHAEL TURNER
+
+004 - RECORD CORRUPTED
+`,
+
+projects: `
+KNOWN PROJECTS
+
+PROJECT ORION
+PROJECT HARBOR
+PROJECT SILENT_CHILD
+`,
+
+status: `
+SYSTEM STATUS
+
+ONLINE
+
+1 CORRUPTED SECTOR DETECTED
+`,
+
+whoareyou: `
+USER NOT RECOGNIZED
+`,
+
+"open file_001":`
+MEMO
+
+WELCOME TO LITTLE BOY MANUFACTURING.
+`,
+
+"open file_002":`
+INCIDENT REPORT
+
+UNAUTHORIZED NOISES
+REPORTED IN SUBLEVEL 3.
+`,
+
+"open file_003":`
+SURVEILLANCE LOG
+
+NO ANOMALIES DETECTED.
+`,
+
+"open file_004":`
+██████████████
+
+FILE CORRUPTED
+
+LAST ENTRY:
+
+"HE IS STILL INSIDE THE WALLS."
+`,
+
+"open 004":`
+██████████████
+
+FILE CORRUPTED
+
+LAST ENTRY:
+
+"HE IS STILL INSIDE THE WALLS."
+`,
+
+"open silent_child":`
+ACCESS DENIED
+CLASSIFICATION OMEGA
+`,
+
+search:`
+SPECIFY SEARCH TARGET
+`
+};
+
+let secretUnlocked = false;
+
+function print(text="", className="line"){
+    const div = document.createElement("div");
+    div.className = className;
+    div.textContent = text;
+    screen.appendChild(div);
+    screen.scrollTop = screen.scrollHeight;
+}
+
+function printMultiline(text){
+    text.trim().split("\n").forEach(line=>{
+        print(line);
+    });
+}
+
+function createInput(){
+
+    const line = document.createElement("div");
+    line.id = "inputLine";
+
+    line.innerHTML = `
+        <span class="prompt">></span>
+        <input id="commandInput" autocomplete="off" autofocus />
+    `;
+
+    screen.appendChild(line);
+
+    const input = document.getElementById("commandInput");
+
+    input.focus();
+
+    input.addEventListener("keydown", e=>{
+
+        if(e.key === "Enter"){
+
+            const cmd = input.value.trim().toLowerCase();
+
+            line.remove();
+
+            print("> " + cmd);
+
+            execute(cmd);
+
+            createInput();
+        }
+
+    });
+
+    screen.scrollTop = screen.scrollHeight;
+}
+
+function execute(cmd){
+
+    if(cmd === "clear"){
+        screen.innerHTML = "";
+        return;
+    }
+
+    if(cmd === "protocol omega"){
+
+        secretUnlocked = true;
+
+        printMultiline(`
+WARNING
+
+CLASSIFIED DATA UNLOCKED
+
+PROJECT SILENT CHILD
+STATUS: ACTIVE
+
+LAST UPDATE:
+YESTERDAY
+`);
+
+        return;
+    }
+
+    if(secretUnlocked && cmd === "open silent_child"){
+
+        printMultiline(`
+PROJECT SILENT CHILD
+
+STATUS: ACTIVE
+
+EMPLOYEE COUNT:
+UNKNOWN
+
+LOCATION:
+REDACTED
+
+LAST LOG:
+
+"IT LEARNED TO USE THE TERMINAL."
+`);
+
+        return;
+    }
+
+    if(cmd === "who are you"){
+
+        printMultiline(`
+I REMEMBER YOU.
+`);
+
+        triggerGlitch();
+
+        return;
+    }
+
+    if(lore[cmd]){
+
+        printMultiline(lore[cmd]);
+
+    }else{
+
+        printMultiline(`
+COMMAND NOT RECOGNIZED
+
+TYPE HELP
+`);
+
+    }
+
+    randomEvent();
+}
+
+function triggerGlitch(){
+
+    document.body.classList.add("glitch");
+
+    setTimeout(()=>{
+        document.body.classList.remove("glitch");
+    },1500);
+
+}
+
+function randomEvent(){
+
+    const chance = Math.random();
+
+    if(chance < 0.08){
+
+        print("");
+
+        print("ERROR 77", "line red");
+        print("ENTITY NOT RECOGNIZED", "line red");
+
+        triggerGlitch();
+    }
+
+}
+
+async function boot(){
+
+    const bootLines = [
+
+"BOOTING TERMINAL-LITTLE-BOY...",
+"",
+"MEMORY CHECK.............OK",
+"ARCHIVE INDEX............OK",
+"EMPLOYEE DATABASE........OK",
+"",
+"WARNING:",
+"1 CORRUPTED SECTOR DETECTED",
+"",
+"LOADING..."
+];
+
+    for(const line of bootLines){
+
+        print(line,"boot");
+
+        await new Promise(r=>setTimeout(r,350));
+    }
+
+    print("");
+    createInput();
+}
+
+boot();
+
+</script>
+
+</body>
+</html>
